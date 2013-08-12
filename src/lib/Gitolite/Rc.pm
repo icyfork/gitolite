@@ -410,6 +410,7 @@ BEGIN { $non_core = "
     ssh-authkeys-split      POST_COMPILE    post-compile/ssh-authkeys-split
     ssh-authkeys            POST_COMPILE    post-compile/ssh-authkeys
     Shell                   POST_COMPILE    post-compile/ssh-authkeys-shell-users
+    ip-acl                  POST_COMPILE    post-compile/ssh-authkeys-ip-restrict
 
     set-default-roles       POST_CREATE     .
 
