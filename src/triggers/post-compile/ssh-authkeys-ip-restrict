@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+# Purpose: Provide ip-based rules for github key, that only allows
+#          git users from specific address/range
+# Author : Anh K. Huynh
+# Date   : 2013 Aug 12th
+# License: GPL v2
+
+# Configuration syntax file `~/.gitolite.users.addresses`
+#
+#   user-foobar:
+#   - address-1
+#   - address-2
+#   - address-3
+
+# Contents of ~/.ssh/authorized_keys
+
+# # gitolite start
+# command="/home/git/bin/gitolite-shell adm1n",...no-pty ssh-dss AAAAB3N
+# command="/home/git/bin/gitolite-shell archlinuxvn",...no-pty ssh-dss A
+# command="/home/git/bin/gitolite-shell e",...no-pty ssh-dss AAAAB3NzaC1
+# command="/home/git/bin/gitolite-shell huy",...no-pty ssh-dss AAAAB3Nza
+# command="/home/git/bin/gitolite-shell icy",...no-pty ssh-dss AAAAB3Nza
+# command="/home/git/bin/gitolite-shell luffy",...no-pty ssh-rsa AAAAB3N
+# command="/home/git/bin/gitolite-shell miyo",...no-pty ssh-dss AAAAB3Nz
+# command="/home/git/bin/gitolite-shell n0bawk",...no-pty ssh-rsa AAAAB3
+# command="/home/git/bin/gitolite-shell redlotus",...no-pty ssh-rsa AAAA
+# command="/home/git/bin/gitolite-shell -s tiny.theslinux.org",...no-pty ss
+# # gitolite end
+
+require 'yaml'
+
+authorized_keys_file = File.join(ENV['HOME'], ".ssh", "authorized_keys")
+config_file = File.join(ENV['HOME'], ".gitolite.users.addresses")
+
+begin
+  ssh_keys = File.readlines(authorized_keys_file).join
+rescue => e
+  STDERR.puts "#{e}"
+  exit 1
+end
+
+exit 0 unless File.file?(config_file)
+
+begin
+  addresses = YAML.load_file(config_file)
+rescue => e
+  STDERR.puts "#{e}"
+  exit 1
+end
+
+addresses.each do |user, addrs|
+  next unless addrs.is_a?(Array)
+  from_string = "from=\"#{addrs.map{|s| s.split(/[[:space:]]+/).first}.join(',')}\""
+  ssh_keys = ssh_keys.gsub(%r{^(command="[^ ]+/gitolite\-shell (\-s )?#{user}",)}, "#{from_string},\\1")
+end
+
+File.open(authorized_keys_file, 'w') do |f|
+  f.puts ssh_keys
+end
