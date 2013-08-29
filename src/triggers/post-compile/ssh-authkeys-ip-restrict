@@ -55,6 +55,12 @@ addresses.each do |user, addrs|
   ssh_keys = ssh_keys.gsub(%r{^(command="[^ ]+/gitolite\-shell (\-s )?#{user}",)}, "#{from_string},\\1")
 end
 
+# FIXME: Use copy-and-move method, like (_print)
+# FIXME: The strategy of (_print) is as below
+# FIXME: * get the current file mod
+# FIXME: * write new contents to tempfile (file.$$)
+# FIXME: * move (file.$$) to (file)
+# FIXME: Please note the use of (file.$$) it is not safe
 File.open(authorized_keys_file, 'w') do |f|
   f.puts ssh_keys
 end
